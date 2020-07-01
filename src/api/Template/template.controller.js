@@ -4,4 +4,8 @@ createTemplate = async function (req, res) {
   await TemplateService.createTemplate(req, res);
 };
 
-module.exports = { createTemplate };
+getTemplates = async function (req, res) {
+  await TemplateService.getTemplates(req, res);
+};
+
+module.exports = { createTemplate, getTemplates };

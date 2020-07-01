@@ -9,7 +9,7 @@ const GeneralOptionsSchema = {
     required: [true, "File Type Required"],
   },
   fileSize: {
-    type: String,
+    type: Object,
     required: [true, "File Size Required"],
   },
 };

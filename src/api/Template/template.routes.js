@@ -1,8 +1,10 @@
-var express = require("express");
-var router = express.Router();
+let express = require("express");
+let router = express.Router();
+let auth = require("../../middlewares/auth");
 
-var TemplateController = require("./template.controller");
+let TemplateController = require("./template.controller");
 
-router.post("/", TemplateController.createTemplate);
+router.post("/", auth, TemplateController.createTemplate);
+router.get("/", auth, TemplateController.getTemplates);
 
 module.exports = router;

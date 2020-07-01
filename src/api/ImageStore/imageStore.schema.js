@@ -3,15 +3,19 @@ const moment = require("moment");
 const currentTime = moment.utc().format("HH:mm:ss");
 const currentDate = moment.utc().format("YYYY-MM-DD");
 
-const OrdersSchema = new mongoose.Schema(
+const imagesStoreSchema = new mongoose.Schema(
   {
+    order: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    status: {
-      type: String,
-      enum: ["PENDING", "CANCELED", "COMPLETED"],
+    url: {
+      type: Array,
+      required: true,
     },
     createdDate: {
       type: String,
@@ -29,4 +33,4 @@ const OrdersSchema = new mongoose.Schema(
   { versionKey: false }
 );
 
-module.exports = mongoose.model("Order", OrdersSchema);
+module.exports = mongoose.model("ImagesStore", imagesStoreSchema);

@@ -1,9 +1,16 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-const Multer = require("multer");
+var { upload } = require("../../middlewares/multer");
+var auth = require("../../middlewares/auth");
+var app = express();
 
-var OrderController = require('./order.controller')
+var OrderController = require("./order.controller");
 
-router.post('/', Multer({ storage: Multer.memoryStorage() }).array("imagesBuffer"), OrderController.createOrder);
+router.post(
+  "/",
+  auth,
+  upload.array("imagesBuffer"),
+  OrderController.createOrder
+);
 
 module.exports = router;

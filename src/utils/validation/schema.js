@@ -11,11 +11,22 @@ const templateSchema = Joi.object({
   generalOptions: {
     instructions: Joi.string().allow("").optional(),
     fileType: Joi.string().required().label("File Type"),
-    fileSize: Joi.string().required().label("File Size"),
+    fileSize: {
+      shape: Joi.string().required().label("File Size"),
+      width: Joi.string().allow("").optional(),
+      height: Joi.string().allow("").optional(),
+      size: Joi.string().allow("").optional(),
+    },
   },
   basicOptions: {
     backgroundColor: Joi.string().required().label("Background Color"),
   },
+  advancedOptions: {
+    shadowAndReflections: Joi.string().allow("").optional(),
+    clippingPath: Joi.string().allow("").optional(),
+    mannequinAndNeck: Joi.string().allow("").optional(),
+  },
+  order: Joi.string().required(),
 });
 
 module.exports = { userSchema, templateSchema };
