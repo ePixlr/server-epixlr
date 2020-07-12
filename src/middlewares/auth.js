@@ -11,15 +11,18 @@ module.exports = (req, res, next) => {
     });
   }
   try {
-    const token = req.headers.authorization;
+    var token = req.headers.authorization;
+    token = token.replace("Bearer ","")
     const decodedToken = jwt.verify(token, secret_key);
     const userId = decodedToken.userId;
     const userName = decodedToken.userName;
+    const role = decodedToken.role;
     if (userId && userName) {
-      req.headers.user = { userId, userName };
+      req.headers.user = { userId, userName, role };
       next();
     }
   } catch (err) {
+    console.log(err)
     res.status(HttpStatus.UNAUTHORIZED);
     return res.send({
       status: HttpStatus.UNAUTHORIZED,

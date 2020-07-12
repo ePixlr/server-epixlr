@@ -13,6 +13,11 @@ const TokensSchema = new mongoose.Schema(
       required: true,
     },
 
+    type: {
+      type: String,
+      enum: ["EMAIL_CONFIRMATION", "USER_INVITATION"],
+    },
+
     createdAt: {
       type: Date,
       required: true,

@@ -3,9 +3,16 @@ const crypto = require("crypto");
 const Token = require("./token.model");
 
 const statusEnum = {
-  ACTIVE: "active",
-  DEACTIVE: "deactive",
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  PENDING: "PENDING"
 };
+
+const roleEnum = {
+  ADMIN: "ADMIN",
+  DESIGNER: "DESIGNER",
+  PHOTOGRAPHER: "PHOTOGRAPHER"
+}
 
 const UsersSchema = new mongoose.Schema(
   {
@@ -21,8 +28,13 @@ const UsersSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
     },
+    role: {
+        type: roleEnum,
+        default: roleEnum.ADMIN
+    },
     status: {
       type: statusEnum,
+      default: statusEnum.ACTIVE
     },
     isVerified: {
       type: Boolean,
@@ -30,18 +42,32 @@ const UsersSchema = new mongoose.Schema(
     },
     createdAt: {
       type: Date,
+      default: new Date()
     },
     updatedAt: {
       type: Date,
     },
+    addedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
   },
   { versionKey: false }
 );
 
 UsersSchema.methods.generateVerificationToken = (userId) => {
-  console.log("datatatatta,", userId);
   let payload = {
     userId,
+    type: 'EMAIL_CONFIRMATION',
+    token: crypto.randomBytes(20).toString("hex"),
+  };
+  return new Token(payload);
+};
+
+UsersSchema.methods.generateInvitationToken = (userId) => {
+  let payload = {
+    userId,
+    type:'USER_INVITATION',
     token: crypto.randomBytes(20).toString("hex"),
   };
   return new Token(payload);

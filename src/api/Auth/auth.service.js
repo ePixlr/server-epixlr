@@ -1,6 +1,6 @@
 const User = require("./auth.model");
 const Token = require("./token.model");
-const mongoose = require("mongoose");
+const mailJetClient = require("../../config/mailjet.config")
 const bcrypt = require("bcryptjs");
 let HttpStatus = require("http-status-codes");
 const { getToken } = require("../../utils/generateToken");
@@ -59,7 +59,7 @@ signin = async function (req, res) {
       if (!user) {
         return res.send({
           status: HttpStatus.NON_AUTHORITATIVE_INFORMATION,
-          error: "Unable to login",
+          error: "Email or password is wrong.",
         });
       }
       if (!user.isVerified) {
@@ -74,7 +74,7 @@ signin = async function (req, res) {
       if (!isMatch) {
         return res.send({
           status: HttpStatus.NON_AUTHORITATIVE_INFORMATION,
-          error: "Unable to login",
+          error: "Email or password is wrong.",
         });
       }
 
@@ -84,7 +84,7 @@ signin = async function (req, res) {
         user: user.userName,
         expireIn: 3600,
         error: null,
-        token: await getToken(user._id, user.userName),
+        token: await getToken(user._id, user.userName, user.role),
       });
     })
     .catch((error) => {
@@ -174,4 +174,6 @@ async function sendVerificationEmail(user, req, res) {
   }
 }
 
-module.exports = { signin, signup, verify };
+
+
+module.exports = { signin, signup, verify, userExist };
