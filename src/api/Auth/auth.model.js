@@ -58,7 +58,7 @@ const UsersSchema = new mongoose.Schema(
 UsersSchema.methods.generateVerificationToken = (userId) => {
   let payload = {
     userId,
-    type: 'EMAIL_CONFIRMATION',
+    type: Token.tokenType.EMAIL_CONFIRMATION,
     token: crypto.randomBytes(20).toString("hex"),
   };
   return new Token(payload);
@@ -67,10 +67,12 @@ UsersSchema.methods.generateVerificationToken = (userId) => {
 UsersSchema.methods.generateInvitationToken = (userId) => {
   let payload = {
     userId,
-    type:'USER_INVITATION',
+    type: Token.tokenType.USER_INVITATION,
     token: crypto.randomBytes(20).toString("hex"),
   };
   return new Token(payload);
 };
 
 module.exports = mongoose.model("User", UsersSchema);
+module.exports.statusType = statusEnum
+module.exports.roleType = roleEnum

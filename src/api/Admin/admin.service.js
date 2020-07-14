@@ -78,7 +78,7 @@ inviteUser = async function (req, res) {
       userName,
       email,
       password,
-      status: "PENDING",
+      status: AuthUser.statusType.ACTIVE,
       role: req.body.role,
       addedBy: user
     });

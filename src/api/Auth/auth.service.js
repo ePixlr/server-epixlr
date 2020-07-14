@@ -59,13 +59,14 @@ signin = async function (req, res) {
       if (!user) {
         return res.send({
           status: HttpStatus.NON_AUTHORITATIVE_INFORMATION,
-          error: "Email or password is wrong.",
+          error: "Unable to login",
         });
       }
       if (!user.isVerified) {
         return res.send({
           status: HttpStatus.NON_AUTHORITATIVE_INFORMATION,
           verified: false,
+          user: user._id,
           error:
             "Your account is not verified. Please verify your account first",
         });
@@ -74,14 +75,14 @@ signin = async function (req, res) {
       if (!isMatch) {
         return res.send({
           status: HttpStatus.NON_AUTHORITATIVE_INFORMATION,
-          error: "Email or password is wrong.",
+          error: "Unable to login",
         });
       }
 
       return res.send({
         status: HttpStatus.OK,
         verified: true,
-        user: user.userName,
+        user: { userName: user.userName, role:user.role },
         expireIn: 3600,
         error: null,
         token: await getToken(user._id, user.userName, user.role),
@@ -112,28 +113,60 @@ async function verify(req, res) {
         message:
           "We were unable to find a valid token. Your token may have expired.",
       });
+    
+    if(token.type == Token.tokenType.EMAIL_CONFIRMATION){
+      verifyEmailConfirmationToken(req, res, token)
+    }
+    else if(token.type == Token.tokenType.USER_INVITATION){
+      verifyUserInvitationToken(req, res, token)
+    }
+    else{
+      res.status(400).json({ message: "We were unable to find a valid token. Your token may have expired.", status: "failed" });
+    }
 
-    User.findOne({ _id: token.userId }, (err, user) => {
-      if (!user)
-        return res
-          .status(400)
-          .json({ message: "We were unable to find a user for this token." });
-
-      if (user.isVerified) {
-        return res.status(200).send("The account has already been verified.");
-      }
-      // Verify and save the user
-      user.isVerified = true;
-      user.save(function (err) {
-        if (err)
-          return res.status(500).json({ message: err.message, status: "500" });
-
-        res.status(200).send("The account has been verified. Please log in.");
-      });
-    });
+    
   } catch (error) {
     res.status(500).json({ message: error.message, status: "failed" });
   }
+}
+
+verifyUserInvitationToken = async function (req, res, token){
+  User.findOne({ _id: token.userId }, (err, user) => {
+    if (!user)
+      return res
+        .status(400)
+        .json({ message: "We were unable to find a user for this token." });
+
+    user.status = User.statusType.ACTIVE
+    user.isVerified = true;
+    user.save(function (err) {
+      if (err)
+        return res.status(500).json({ message: err.message, status: "500" });
+
+      res.status(200).send("The account has been verified. Please create a new password.");
+    });
+  });
+}
+
+verifyEmailConfirmationToken = async function (req, res, token) {
+  User.findOne({ _id: token.userId }, (err, user) => {
+    if (!user)
+      return res
+        .status(400)
+        .json({ message: "We were unable to find a user for this token." });
+
+    if (user.isVerified) {
+      return res.status(200).send("The account has already been verified.");
+    }
+    // Verify and save the user
+    user.isVerified = true;
+    user.save(function (err) {
+      if (err)
+        return res.status(500).json({ message: err.message, status: "500" });
+
+      res.status(200).send("The account has been verified. Please log in.");
+    });
+  });
 }
 
 async function sendVerificationEmail(user, req, res) {
@@ -142,38 +175,52 @@ async function sendVerificationEmail(user, req, res) {
     await token.save();
 
     let link = "http://" + req.headers.host + "/api/auth/verify/" + token.token;
-
-    var transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "",
-        pass: "",
-      },
-    });
-
-    var mailOptions = {
-      from: "kbztest01@gmail.com",
-      to: user.email,
-      subject: "Sending Email using Node.js[nodemailer]",
-      text: `<p>Hi ${user.userName}<p><br><p>Please click here: ${link} to verify your account.</p>
-        <br><p>If you did not request this, please ignore this email.</p>`,
-    };
-
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error.message, "erererererer");
-      } else {
-        console.log("Email sent: " + info.response);
+    mailJetClient
+      .post("send", {'version': 'v3.1'})
+      .request({
+          "Messages":[{
+              "From": {
+                  "Email": "noreply@epixlr.com",
+                  "Name": "ePixilier"
+              },
+              "To": [{
+                  "Email": user.email,
+                  "Name": user.userName
+              }],
+              "Subject": "Verify your email address!",
+              "HTMLPart": `<p>Hi ${user.userName}<p><br><p>Please click here: ${link} to verify your account.</p>
+                <br><p>If you did not request this, please ignore this email.</p>`
+          }]
+      }).then((result) => {
+        console.log("Email Confirmation email sent to " + user.email);
         res.status(200).json({
           message: "A verification email has been sent to " + user.email + ".",
         });
-      }
-    });
+      }).catch((error) => {
+        console.log(error)
+        res.status(500).json({
+          error: error
+        })
+      });
   } catch (error) {
     res.status(500).json({ message: error.message, status: "last catch" });
   }
 }
 
+resendVerificationEmail = async (req, res) => {
+  try {
+    const userId = req.body.user._id;
+    const user = User.findById(userId).then((response) => {
+      if (response) sendVerificationEmail(response, req, res);
+      else {
+        return res.status(400).json({ error: "User not found" });
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "User not found" });
+  }
+};
 
 
-module.exports = { signin, signup, verify, userExist };
+
+module.exports = { signin, signup, verify, userExist, resendVerificationEmail };

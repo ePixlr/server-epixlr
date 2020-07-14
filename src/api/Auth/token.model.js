@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 
+const tokenType = {
+  EMAIL_CONFIRMATION: "EMAIL_CONFIRMATION",
+  USER_INVITATION: "USER_INVITATION"
+}
+
 const TokensSchema = new mongoose.Schema(
   {
     userId: {
@@ -14,8 +19,7 @@ const TokensSchema = new mongoose.Schema(
     },
 
     type: {
-      type: String,
-      enum: ["EMAIL_CONFIRMATION", "USER_INVITATION"],
+      type: tokenType,
     },
 
     createdAt: {
@@ -29,3 +33,4 @@ const TokensSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Tokens", TokensSchema);
+module.exports.tokenType = tokenType

@@ -12,4 +12,8 @@ verify = async function (req, res) {
   await AuthService.verify(req, res);
 };
 
-module.exports = { signup, signin, verify };
+resendVerificationEmail = async function (req, res) {
+  await AuthService.resendVerificationEmail(req, res);
+};
+
+module.exports = { signup, signin, verify, resendVerificationEmail };
