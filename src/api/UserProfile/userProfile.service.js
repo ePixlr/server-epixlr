@@ -43,12 +43,19 @@ addUserProfileAvatar = async function (req, res) {
         if(error) {
             return console.log(error);
         }
-        console.log(etag);
         
-        const userProfile = await UserProfile.findOne({
+        var userProfile = await UserProfile.findOne({
             user
         });
-        userProfile.avatar = filePath
+        if(!userProfile){
+            userProfile = new UserProfile({
+                user,
+                avatar: filePath
+            });
+        }
+        else
+            userProfile.avatar = filePath
+            
         await userProfile
             .save()
             .then(async (response) => {
