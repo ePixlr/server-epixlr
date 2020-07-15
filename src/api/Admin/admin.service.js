@@ -28,6 +28,10 @@ getMyUsers = async function (req, res) {
 getUserProfile = async function (req, res) {
     var userId = req.params.userId
     var profile = await findUserProfile(userId)
+    var account = await AuthUser.findOne(profile.user).select({"userName":1, "email":1})
+    profile = profile.toObject();
+    profile.userName = account.userName
+    profile.email = account.email
     res.status(HttpStatus.OK).send(profile)
 }
 
