@@ -11,9 +11,9 @@ restRouter.use("/auth", AuthRoute);
 restRouter.use("/order", OrdersRoute);
 restRouter.use("/template", TemplateRoute);
 restRouter.use("/subscriptions", SubscriptionRoute);
-restRouter.use("/user/profile", UserProfileRoute)
 restRouter.use("/admin",AdminRoute);
-restRouter.get("/go", (req, res) => {
+restRouter.use("/user/profile", UserProfileRoute)
+restRouter.get("/health", (req, res) => {
   res.send({ message: "API Runs Correctly." });
 });
 

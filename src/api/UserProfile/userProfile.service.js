@@ -1,17 +1,21 @@
 const UserProfile = require("./userProfile.model");
+const UserAccount = require("../Auth/auth.model")
 const HttpStatus = require("http-status-codes");
 const moment = require("moment");
 const minioClient = require("../../config/minio.config")
 const currentTime = moment.utc().format("HH:mm:ss");
 const currentDate = moment.utc().format("YYYY-MM-DD");
 
-getUserProfile = async function (req, res) {
+getMyProfile = async function (req, res) {
     const { userId: user } = req.headers.user;
     var profile = await UserProfile.findOne({
         user
     })
+    var account = await UserAccount.findOne(profile.user).select({"userName":1, "email":1})
     if(profile){
         profile = profile.toObject();
+        profile.userName = account.userName
+        profile.email = account.email
         minioClient.presignedUrl('GET', process.env.MINIO_BUCKET, profile.avatar, 24*60*60, function(err, presignedUrl) {
             if (err) return console.log(err)
             profile.avatar = presignedUrl
@@ -25,14 +29,13 @@ getUserProfile = async function (req, res) {
 
 addUserProfile = async function (req, res) {
     const { userId: user } = req.headers.user;
-    console.log(req.file)
     const userProfile = await UserProfile.findOne({
         user
     });
     if (userProfile !== null) {
-        updateUserProfile(req, res, userProfile);
+        updateMyProfile(req, res, userProfile);
     } else {
-        addNewUserProfile(req, res, user);
+        addNewMyProfile(req, res, user);
     }
 };
 
@@ -69,11 +72,8 @@ addUserProfileAvatar = async function (req, res) {
 };
 
 
-updateUserProfile = async function (req, res, userProfile) {
+updateMyProfile = async function (req, res, userProfile) {
     userProfile.updatedAt = new Date();
-    userProfile.name = req.body.name;
-    userProfile.email = req.body.email;
-    userProfile.avatar = req.body.avatar;
     userProfile.company = req.body.company;
     userProfile.billingAddress1 = req.body.billingAddress1;
     userProfile.billingAddress2 = req.body.billingAddress2
@@ -84,18 +84,20 @@ updateUserProfile = async function (req, res, userProfile) {
     await userProfile
         .save()
         .then(async (response) => {
-            res.status(HttpStatus.OK).send(response);
+            const userAccount = await UserAccount.findOne(userProfile.user);
+            userAccount.userName = req.body.userName;
+            await userAccount.save().then(async (resp) => {
+                res.status(HttpStatus.OK).send(response);
+            })
         })
         .catch((error) => {
             throw new Error(error);
         });
 };
 
-addNewUserProfile = async function (req, res, user) {
+addNewMyProfile = async function (req, res, user) {
     const userProfile = new UserProfile({
         user,
-        name: req.body.name,
-        email: req.body.email,
         avatar: req.body.avatar,
         company: req.body.company,
         billingAddress1: req.body.billingAddress1,
@@ -117,4 +119,4 @@ addNewUserProfile = async function (req, res, user) {
         });
 };
 
-module.exports = { addUserProfile, getUserProfile, addUserProfileAvatar };
+module.exports = { addUserProfile, getMyProfile, addUserProfileAvatar };

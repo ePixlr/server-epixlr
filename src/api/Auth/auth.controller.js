@@ -16,4 +16,12 @@ resendVerificationEmail = async function (req, res) {
   await AuthService.resendVerificationEmail(req, res);
 };
 
-module.exports = { signup, signin, verify, resendVerificationEmail };
+changePassword = async function (req, res) {
+  await AuthService.changePassword(req, res);
+};
+
+createPassword = async function (req, res) {
+  await AuthService.createPassword(req, res);
+};
+
+module.exports = { signup, signin, verify, resendVerificationEmail, changePassword, createPassword };

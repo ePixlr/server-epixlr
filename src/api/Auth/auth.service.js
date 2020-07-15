@@ -1,4 +1,6 @@
 const User = require("./auth.model");
+const UserSubscription = require("../Subscription/userSubscription.model")
+const SubscriptionPlan = require("../Subscription/subscriptionPlan.model")
 const Token = require("./token.model");
 const mailJetClient = require("../../config/mailjet.config")
 const bcrypt = require("bcryptjs");
@@ -6,7 +8,32 @@ let HttpStatus = require("http-status-codes");
 const { getToken } = require("../../utils/generateToken");
 const { hashedPassword } = require("../../utils/hashPassword");
 const { validateUser } = require("../../utils/validation/validate");
-var nodemailer = require("nodemailer");
+
+createPassword = async function (req, res) {
+  const token = await Token.findOne({ token: req.body.token });
+  if(!token){
+    return res.status(400).send("The token is invalid or has expired.")
+  }
+  await Token.deleteOne({token: req.body.token})
+  var newPassword = await hashedPassword(req.body.newPassword);
+  var account = await User.findOne({_id: req.body.userId})
+
+  account.password = newPassword
+  account.save().then(async (resp) => {
+    res.status(HttpStatus.OK).send();
+  })
+}
+
+changePassword = async function (req, res) {
+  var newPassword = await hashedPassword(req.body.newPassword);
+  const { userId  } = req.headers.user;
+  var account = await User.findOne({_id: userId})
+
+  account.password = newPassword
+  account.save().then(async (resp) => {
+    res.status(HttpStatus.OK).send();
+  })
+}
 
 signup = async function (req, res) {
   let { userName, email, password } = req.body || {};
@@ -78,7 +105,6 @@ signin = async function (req, res) {
           error: "Unable to login",
         });
       }
-
       return res.send({
         status: HttpStatus.OK,
         verified: true,
@@ -143,7 +169,7 @@ verifyUserInvitationToken = async function (req, res, token){
       if (err)
         return res.status(500).json({ message: err.message, status: "500" });
 
-      res.status(200).send("The account has been verified. Please create a new password.");
+      res.status(200).send({id: user._id});
     });
   });
 }
@@ -223,4 +249,4 @@ resendVerificationEmail = async (req, res) => {
 
 
 
-module.exports = { signin, signup, verify, userExist, resendVerificationEmail };
+module.exports = { signin, signup, verify, userExist, resendVerificationEmail, changePassword, createPassword };

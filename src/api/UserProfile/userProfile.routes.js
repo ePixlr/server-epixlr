@@ -8,7 +8,7 @@ var UserProfileController = require("./userProfile.controller");
 router.get(
     "/",
     auth,
-    UserProfileController.getUserProfile
+    UserProfileController.getMyProfile
 );
 
 router.post(

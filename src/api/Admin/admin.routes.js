@@ -17,13 +17,13 @@ router.post(
 );
 
 router.get(
-    "/user/:userId/profile",
-    [auth, admin], 
+    "/users/:userId/profile",
+    [auth, admin],  
     AdminController.getUserProfile
 );
 
 router.put(
-    "/user/:userId/profile",
+    "/users/:userId/profile",
     [auth, admin], 
     AdminController.updateUserProfile
 );

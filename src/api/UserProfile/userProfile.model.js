@@ -9,11 +9,8 @@ const UserProfileSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    name: {
-        type: String
-    },
-    email: {
-        type: String
+    alternateEmail: { 
+      type: String 
     },
     avatar: {
         type: String

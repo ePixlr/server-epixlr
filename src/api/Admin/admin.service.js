@@ -32,7 +32,10 @@ getUserProfile = async function (req, res) {
 }
 
 updateUserProfile = async function (req, res) {
+    console.log("here222")
     var userId = req.params.userId
+    if(!userId)
+      return res.status(400).send()
     var userProfile = await findUserProfile(userId)
     userProfile.updatedAt = new Date();
     userProfile.name = req.body.name;
@@ -64,7 +67,7 @@ findUserProfile = async function(userId){
 
 inviteUser = async function (req, res) {
     var email = req.body.email
-    var userName = email.split('@')[0]
+    var userName = req.body.name
     const { userId: user } = req.headers.user;
     if (await AuthService.userExist(email)) {
         return res.status(HttpStatus.CONFLICT).send({
@@ -89,8 +92,6 @@ inviteUser = async function (req, res) {
         if (userAccountResp) {
           const userProfile = new UserProfile({
             user: userAccountResp._id,
-            name: req.body.name,
-            email: email,
             createdDate: currentDate,
             createdTime: currentTime,
           });
@@ -98,10 +99,10 @@ inviteUser = async function (req, res) {
           .save()
           .then(async (response) => {
               
-              const myProfile = await UserProfile.findOne({
-                  user
+              const myAccount = await User.findOne({
+                  _id: user
               })
-              await sendInvitationEmail(userAccount, response, myProfile, req, res);
+              await sendInvitationEmail(userAccount, myAccount, req, res);
           })
           .catch((error) => {
               throw new Error(error);
@@ -114,12 +115,12 @@ inviteUser = async function (req, res) {
 }
 
 
-async function sendInvitationEmail(userAccount, userProfile, myProfile, req, res) {
+async function sendInvitationEmail(userAccount, myAccount, req, res) {
     try {
       const token = userAccount.generateInvitationToken(userAccount._id);
       await token.save();
   
-      let link = "http://" + req.headers.host + "/api/auth/create/" + token.token;
+      let link = process.env.CLIENT_URL + "/account/create/" + token.token;
       mailJetClient
       .post("send", {'version': 'v3.1'})
       .request({
@@ -130,10 +131,10 @@ async function sendInvitationEmail(userAccount, userProfile, myProfile, req, res
               },
               "To": [{
                   "Email": userAccount.email,
-                  "Name": userProfile.name
+                  "Name": userAccount.userName
               }],
               "Subject": "You've been invited to join ePixilier!",
-              "HTMLPart": `<p>Hi ${userProfile.name}, <p><br><p>You've been invited by ${myProfile.name} to create an account 
+              "HTMLPart": `<p>Hi ${userAccount.userName}, <p><br><p>You've been invited by ${myAccount.userName} to create an account 
                           at ePixilier: Please click <a href=${link}>here</a> to create your account.</p><br>`
           }]
       }).then((result) => {

@@ -77,11 +77,13 @@ addNewUserSubscription = async function (req, res, user) {
 getUserSubscription = async function (req, res) {
     const { userId: user } = req.headers.user;
 
-    const userSubscription = await UserSubscription.findOne({
+    var userSubscription = await UserSubscription.findOne({
         user
     });
 
     if(userSubscription){
+        userSubscription = userSubscription.toObject()
+        userSubscription.plan = await SubscriptionPlan.findOne({ planId: userSubscription.planId })
         res.status(HttpStatus.OK).send(userSubscription);
     }
     else{

@@ -1,7 +1,7 @@
 const UserProfileService = require("./userProfile.service");
 
-getUserProfile = async function (req, res) {
-    await UserProfileService.getUserProfile(req, res);
+getMyProfile = async function (req, res) {
+    await UserProfileService.getMyProfile(req, res);
 };
 
 addUserProfile = async function (req, res) {
@@ -12,4 +12,4 @@ addUserProfileAvatar = async function (req, res) {
     await UserProfileService.addUserProfileAvatar(req, res);
 }
 
-module.exports = { getUserProfile, addUserProfile, addUserProfileAvatar };
+module.exports = { getMyProfile, addUserProfile, addUserProfileAvatar };
