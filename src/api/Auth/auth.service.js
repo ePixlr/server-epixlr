@@ -1,6 +1,7 @@
 const User = require("./auth.model");
 const UserSubscription = require("../Subscription/userSubscription.model")
 const SubscriptionPlan = require("../Subscription/subscriptionPlan.model")
+const UserProfile = require("../UserProfile/userProfile.model")
 const Token = require("./token.model");
 const mailJetClient = require("../../config/mailjet.config")
 const bcrypt = require("bcryptjs");
@@ -63,6 +64,8 @@ signup = async function (req, res) {
   await user
     .save()
     .then(async (response) => {
+      const userProfile = new UserProfile({user: user._id})
+      await userProfile.save()
       if (response) await sendVerificationEmail(response, req, res);
     })
     .catch((error) => {
