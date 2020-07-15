@@ -213,9 +213,14 @@ async function sendVerificationEmail(user, req, res) {
                   "Email": user.email,
                   "Name": user.userName
               }],
+              "TemplateID": 1560885,
+              "TemplateLanguage": true,
               "Subject": "Verify your email address!",
-              "HTMLPart": `<p>Hi ${user.userName}<p><br><p>Please click here: ${link} to verify your account.</p>
-                <br><p>If you did not request this, please ignore this email.</p>`
+              "Variables": {
+                "firstname": "\"]]</title><!--[if !mso]><!-- --><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><!--<![endif]--><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style type=\"text/css",
+                "confirmation_link": link,
+                "userName": user.userName
+              }
           }]
       }).then((result) => {
         console.log("Email Confirmation email sent to " + user.email);

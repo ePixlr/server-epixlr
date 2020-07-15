@@ -137,9 +137,15 @@ async function sendInvitationEmail(userAccount, myAccount, req, res) {
                   "Email": userAccount.email,
                   "Name": userAccount.userName
               }],
-              "Subject": "You've been invited to join ePixilier!",
-              "HTMLPart": `<p>Hi ${userAccount.userName}, <p><br><p>You've been invited by ${myAccount.userName} to create an account 
-                          at ePixilier: Please click <a href=${link}>here</a> to create your account.</p><br>`
+              "TemplateID": 1571819,
+              "TemplateLanguage": true,
+              "Subject": "You've been invited to join ePixilr!",
+              "Variables": {
+                "firstname": "\"]]</title><!--[if !mso]><!-- --><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><!--<![endif]--><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style type=\"text/css",
+                "invite_link": link,
+                "userName": userAccount.userName,
+                "inviteeUserName": myAccount.userName
+              }
           }]
       }).then((result) => {
           console.log("Invitation email sent to " + userAccount.email);
