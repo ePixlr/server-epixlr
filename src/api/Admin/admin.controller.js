@@ -16,4 +16,8 @@ updateUserProfile = async function (req, res) {
     await AdminService.updateUserProfile(req, res);
 };
 
-module.exports = { getMyUsers, inviteUser, getUserProfile, updateUserProfile };
+deleteUser = async function (req, res) {
+    await AdminService.deleteUser(req, res);
+}
+
+module.exports = { getMyUsers, inviteUser, getUserProfile, updateUserProfile, deleteUser };

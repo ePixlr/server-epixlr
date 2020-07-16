@@ -2,6 +2,8 @@ const User = require("../Auth/auth.model");
 const AuthUser = require("../Auth/auth.model");
 const UserProfile = require("../UserProfile/userProfile.model")
 const AuthService = require("../Auth/auth.service")
+const Subscription = require("../Subscription/subscriptionPlan.model")
+const UserSubscription = require("../Subscription/userSubscription.model")
 const HttpStatus = require("http-status-codes");
 const moment = require("moment");
 const currentTime = moment.utc().format("HH:mm:ss");
@@ -9,19 +11,35 @@ const currentDate = moment.utc().format("YYYY-MM-DD");
 const { v4: uuidv4 } = require('uuid');
 const mailJetClient = require("../../config/mailjet.config")
 const { hashedPassword } = require("../../utils/hashPassword");
+const minioClient = require("../../config/minio.config");
+
+deleteUser = async function (req, res) {
+  var userId = req.params.userId
+  await UserProfile.deleteOne({"user":userId})
+  await AuthUser.deleteOne({"_id": userId})
+  getMyUsers(req,res)
+}
 
 getMyUsers = async function (req, res) {
     const { userId } = req.headers.user;
     var users = await AuthUser.find({
-        addedBy: userId
+        'addedBy':userId
     })
+    var myAccount = await AuthUser.findOne({"_id":userId})
     var response = []
+    users.unshift(myAccount)
     for (var user of users) { 
         user = user.toObject();
         delete user["password"]
-        user["profile"] = await findUserProfile(user._id)
+        user.profile = await findUserProfile(user._id)
+        if(user.profile.avatar)
+          user.profile.avatar = await minioClient.presignedUrl('GET', process.env.MINIO_BUCKET, user.profile.avatar, 24*60*60) 
         response.push(user)
     }
+    response[0].subscription = await UserSubscription.findOne({"user":userId})
+    response[0].subscription = response[0].subscription.toObject()
+    response[0].subscription.plan = await Subscription.findOne({"planId":response[0].subscription.planId})
+    response[0].role = "ACCOUNT OWNER"
     res.status(HttpStatus.OK).send(response)
 }
 
@@ -32,6 +50,7 @@ getUserProfile = async function (req, res) {
     profile = profile.toObject();
     profile.userName = account.userName
     profile.email = account.email
+    profile.avatar = await minioClient.presignedUrl('GET', process.env.MINIO_BUCKET, profile.avatar, 24*60*60) 
     res.status(HttpStatus.OK).send(profile)
 }
 
@@ -85,7 +104,7 @@ inviteUser = async function (req, res) {
       userName,
       email,
       password,
-      status: AuthUser.statusType.ACTIVE,
+      status: AuthUser.statusType.PENDING,
       role: req.body.role,
       addedBy: user
     });
@@ -163,4 +182,4 @@ async function sendInvitationEmail(userAccount, myAccount, req, res) {
     }
   }
 
-module.exports = { getMyUsers, inviteUser, getUserProfile, updateUserProfile };
+module.exports = { getMyUsers, inviteUser, getUserProfile, updateUserProfile, deleteUser };

@@ -16,6 +16,12 @@ router.post(
     AdminController.inviteUser
 );
 
+router.delete(
+    "/users/:userId",
+    [auth, admin],  
+    AdminController.deleteUser
+)
+
 router.get(
     "/users/:userId/profile",
     [auth, admin],  
